@@ -1,5 +1,4 @@
-FROM python:3.11-slim-buster
-ADD . /python-flask
-WORKDIR /python-flask
-RUN pip install -r requirements.txt
-CMD ["python", "src/hello.py"]
+FROM eclipse-temurin:17-jre-alpine
+COPY target/my-app-1.0-SNAPSHOT.jar /app.jar
+EXPOSE 8081
+ENTRYPOINT ["java", "-jar", "/app.jar"]
