@@ -1,74 +1,29 @@
 pipeline {
-    agent {
-        docker { 
-            image 'python:3.11' 
-            args '-p 5556:5556'
-        }
-    }
-    environment {
-        APP_PORT = '5556'
-        GITHUB_REPO = 'https://github.com/ThomasMicheler/DEZSYS_JENKINS_HELLOSPENCER.git'
-    }
+    agent any
     stages {
-        stage('Pre-Build Cleanup') {
+        stage('Source') {
             steps {
-                // Kill any existing Flask processes
-                sh 'pkill -f "python hello.py" || true'
-            }
-        }
-        stage('Checkout') {
-            steps {
-                cleanWs()
-                git branch: 'main', url: "${GITHUB_REPO}"
+                checkout scm
+                echo 'Code ausgecheckt'
             }
         }
         stage('Build') {
             steps {
-                sh '''
-                    python -m pip install --upgrade pip
-                    pip install flask
-                    pip install requests
-                    pip install pytest
-                    if [ ! -f count.txt ]; then
-                        echo "0" > count.txt
-                    fi
-                    chmod 666 count.txt
-                '''
+                echo 'Build läuft...'
+                // z.B.: sh 'mvn clean package' für Maven
+                // oder: sh './gradlew build' für Gradle
             }
         }
         stage('Test') {
             steps {
-                sh '''
-                    # Run the unit tests
-                    python -m pytest tests/test_hello.py -v
-                '''
+                echo 'Tests laufen...'
+                // z.B.: sh 'mvn test'
             }
         }
-        stage('Run') {
+        stage('Deploy') {
             steps {
-                sh '''
-                    nohup python src/hello.py > app.log 2>&1 &
-                    sleep 5
-                    curl http://localhost:5556/api/hello
-                '''
+                echo 'Deployment...'
             }
-        }
-        stage('Test API') {
-            steps {
-                sh 'python tests/test_api.py'
-            }
-        }
-        stage('Keep Alive') {
-            steps {
-                // Keep the container running indefinitely
-                sh 'sleep infinity'
-            }
-        }
-    }
-    post {
-        always {
-            // Cleanup: Stop the Flask application
-            sh 'pkill -f "python src/hello.py" || true'
         }
     }
 }
